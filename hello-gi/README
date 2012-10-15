@@ -1,0 +1,28 @@
+Hello World
+-----------
+
+This is the example Hello World program in Python
+for Gnome 3 from:
+
+http://developer.gnome.org/gnome-devel-demos/unstable/tutorial.py.html.en
+https://python-gtk-3-tutorial.readthedocs.org/en/latest/index.html
+
+Build
+-----
+
+./autogen.sh --prefix=$HOME/.local
+
+Install
+-------
+
+make install
+
+Uninstall
+---------
+
+make uninstall
+
+Clean
+-----
+
+make maintainer-clean

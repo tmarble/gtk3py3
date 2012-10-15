@@ -1,0 +1,147 @@
+#!/usr/bin/python3
+# -*- Mode: python; python-indent-offset: 4; coding: utf-8  -*-
+# gtune3
+# Copyright (C) 2012 Tom Marble <tmarble@info9.net>
+
+from gi.repository import Gtk, GdkPixbuf, Gdk, Gst, GObject
+import os, sys, argparse
+
+class gtune3(object):
+    frequencies = { # Frequencies of the strings, in Hz
+        'E': 369.23,
+        'A': 440,
+        'D': 587.33,
+        'G': 783.99,
+        'B': 987.77,
+        'e': 1318.5
+    }
+
+    def __init__(self):
+        args = None
+        pass
+
+    def debug(self, *objects, **kwargs):
+        if self.args.verbose:
+            if not 'file' in kwargs:
+                kwargs['file'] = sys.stderr
+            tag = 'DEBUG:'
+            if 'tag' in kwargs:
+                tag = kwargs['tag']
+                del kwargs['tag']
+            print(tag, *objects, **kwargs)
+
+    def error(self, *objects, **kwargs):
+        kwargs['tag'] = 'ERROR:'
+        self.debug(*objects, **kwargs)
+
+    def run(self, args):
+        self.args = args
+        self.debug('args = %s' % str(self.args))
+        if self.args.print_freq:
+            self.print_freq()
+            return 0
+        if self.args.gui:
+            return self.gui(args.label)
+        return 0
+
+    def print_freq(self):
+        print('Frequencies supported:')
+        for f in self.frequencies:
+            print('freq %s = %f' % (f, self.frequencies[f]))
+             
+    # We expect that the UI file was made by glade
+    # and the top level widget is 'window1'
+    # and window1.signals.GtkWidget destroy and destroy-event have 
+    # the handler set to destroy
+    def resource(self, filename):
+        """returns a resource filename for this application"""
+        filepath = os.path.normpath(os.path.join(self.args.pdir, '..', 
+                                                 'share', self.args.program, 
+                                                 filename))
+        self.debug('trying to load resource file from: %s' % filepath)
+        if not os.path.exists(filepath):
+            filepath = os.path.join(self.args.pdir, filename)
+            self.debug('trying to load resource file from: %s' % filepath)
+            if not os.path.exists(filepath):
+                self.error('cannot find resource: %s' % filename)
+                sys.exit(1)
+        return filepath
+
+    def ui(self):
+        """returns the UI file for this application"""
+        uifile = self.__class__.__name__ + '.ui'
+        return self.resource(uifile)
+
+    def gui(self, label):
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(self.ui())
+        self.builder.connect_signals(self)
+        window1 = self.builder.get_object('window1')
+        label1 = self.builder.get_object('label1')
+        if label1:
+            label1.set_text(label)
+        image1 = self.builder.get_object('image1')
+        if image1:
+            image1.set_from_file(self.resource('gtune3.svg'))
+        window1.show_all()
+        # for some reason the first sound doesn't play, so do it here
+        self.play_sound(self.frequencies['E'])
+        Gtk.main()
+        return 0
+
+    def play_sound(self, frequency):
+        pipeline = Gst.Pipeline(name='note')
+        source = Gst.ElementFactory.make('audiotestsrc', 'src')
+        sink = Gst.ElementFactory.make('autoaudiosink', 'output')
+        source.set_property('freq', frequency)
+        pipeline.add(source)
+        pipeline.add(sink)
+        source.link(sink)
+        pipeline.set_state(Gst.State.PLAYING)
+        GObject.timeout_add(self.args.duration, self.pipeline_stop, pipeline)
+
+    def pipeline_stop(self, pipeline):
+        pipeline.set_state(Gst.State.PAUSED)
+        return False
+
+    def on_button_clicked(self, button):
+        label = button.get_child()
+        note = label.get_label()
+        self.debug('playing note %s at frequency %f for duration %d' %
+                   (note, self.frequencies[note], self.args.duration))
+        self.play_sound (self.frequencies[note])
+
+    def destroy(self, *args):
+        Gtk.main_quit()
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-V', '--version', action='version', version='1.0')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='verbose mode')
+    parser.add_argument('-p', '--print-freq', action='store_true',
+                        help='print frequencies')
+    parser.add_argument('-g', '--gui', action='store_true',
+                        default=True,
+                        help='graphical mode (default)')
+    parser.add_argument('-l', '--label', type=str,
+                        default='Guitar Tuner 3',
+                        help='program label')
+    parser.add_argument('-d', '--duration', type=int,
+                        default=500,
+                        help='tone duration (ms)')
+    args = parser.parse_args()
+    args.program = sys.argv[0]
+    if args.program[0] != '/':
+        args.program = os.path.join(os.getcwd(), args.program)
+    args.pdir = os.path.normpath(os.path.dirname(args.program))
+    args.program = os.path.basename(args.program)
+    if args.print_freq:
+        args.gui = False # non-gui options disable GUI
+    #print('DEBUG args = %s' % str(args))
+    Gst.init_check(sys.argv)
+    return gtune3().run(args)
+
+if __name__ == '__main__':
+    sys.exit(main())
+

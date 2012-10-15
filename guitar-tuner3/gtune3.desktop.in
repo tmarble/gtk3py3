@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=Guitar Tuner 3
+Comment=Guitar Tuner 3 Demo Program
+Exec=@prefix@/bin/gtune3
+Icon=@prefix@/share/gtune3/gtune3.svg
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Utility;

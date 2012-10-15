@@ -4,7 +4,7 @@ Guitar Tuner 3
 This is the example Guitar Tuner program in Python
 for Gnome 3 from...
 
-http://developer.gnome.org/gnome-devel-demos/3.6/py.html.en/
+http://developer.gnome.org/gnome-devel-demos/3.6/py.html.en
 https://python-gtk-3-tutorial.readthedocs.org/en/latest/index.html
 
 ... which has been updated for Python 3 and is intended

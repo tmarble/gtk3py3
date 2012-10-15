@@ -3,7 +3,7 @@
 This is just series of technical studies on GTK 3 with Python 3
 
 For more information please see:
-* [Gnome Developer Documentation](http://developer.gnome.org/gnome-devel-demos/unstable/tutorial.py.html.en)
+* [Gnome Developer Documentation - Demos in Python](http://developer.gnome.org/gnome-devel-demos/3.6/py.html.en/)
 
 ## Contributors
 
@@ -12,4 +12,6 @@ For more information please see:
 ## License
 
 Copyright (C) 2012 Informatique, Inc
+
+Licensed under GPLv3 or later
 
